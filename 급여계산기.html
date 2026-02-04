@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>급여 계산기 - 농업회사법인(주)육구이</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 15px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+            margin-bottom: -2px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .input-group input, .input-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-calculate {
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .result-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .result-item.highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .result-item .label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .result-item.highlight .label {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .result-item .value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .result-item.highlight .value {
+            color: white;
+        }
+
+        .total-section {
+            margin-top: 20px;
+            padding: 25px;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+        }
+
+        .total-section .label {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .total-section .value {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .minimum-wage-check {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .minimum-wage-check.pass {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+
+        .minimum-wage-check.fail {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+
+        .settings-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .settings-row label {
+            font-weight: bold;
+            color: #856404;
+        }
+
+        .settings-row input {
+            padding: 10px;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            width: 150px;
+            font-size: 15px;
+        }
+
+        .settings-row .info {
+            font-size: 12px;
+            color: #856404;
+        }
+
+        /* 직원 관리 테이블 */
+        .employee-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .employee-table th, .employee-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .employee-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .employee-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .history-manage-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .history-manage-table th, .history-manage-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        .history-manage-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .history-manage-table .btn {
+            padding: 3px 8px;
+            font-size: 11px;
+            margin-right: 3px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .badge-up {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-down {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        /* 근로계약서 출력 스타일 */
+        .contract-preview {
+            background: white;
+            padding: 30px;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .contract-preview h2 {
+            text-align: center;
+            font-size: 22px;
+            margin-bottom: 20px;
+            letter-spacing: 8px;
+        }
+
+        .contract-preview p {
+            margin: 6px 0;
+        }
+
+        .contract-preview .indent {
+            padding-left: 20px;
+        }
+
+        .contract-preview .indent2 {
+            padding-left: 40px;
+        }
+
+        .contract-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .contract-table th, .contract-table td {
+            border: 1px solid #333;
+            padding: 6px 8px;
+            font-size: 12px;
+        }
+
+        .contract-table th {
+            background: #f0f0f0;
+            font-weight: normal;
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 8mm;
+            }
+            body {
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            body > *:not(.container) {
+                display: none !important;
+            }
+            .container {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                max-width: none !important;
+                background: white !important;
+            }
+            .header, .tabs, .section, .modal, #tab-employees {
+                display: none !important;
+            }
+            #tab-calculator {
+                display: block !important;
+                padding: 0 !important;
+            }
+            #tab-calculator > *:not(#resultArea) {
+                display: none !important;
+            }
+            #resultArea {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            #resultArea > *:not(#contractPreviewArea) {
+                display: none !important;
+            }
+            #contractPreviewArea {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .contract-preview {
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-size: 9px;
+                line-height: 1.25;
+            }
+            .contract-preview h2 {
+                font-size: 14px;
+                margin-bottom: 8px;
+                letter-spacing: 5px;
+            }
+            .contract-preview p {
+                margin: 2px 0;
+            }
+            .contract-preview .indent {
+                padding-left: 12px;
+            }
+            .contract-preview .indent2 {
+                padding-left: 24px;
+            }
+            .contract-preview .contract-table {
+                margin: 4px 0;
+            }
+            .contract-preview .contract-table th,
+            .contract-preview .contract-table td {
+                padding: 2px 4px;
+                font-size: 8.5px;
+            }
+            .contract-preview .signature-section {
+                margin-top: 10px;
+            }
+            .contract-preview div[style*="margin-top"] {
+                margin-top: 8px !important;
+            }
+            .contract-preview {
+                overflow: visible !important;
+            }
+            .contract-preview p, .contract-preview span {
+                overflow: visible !important;
+            }
+            .print-btn-area {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>급여 계산기</h1>
+            <p>농업회사법인(주)육구이</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('calculator')">급여 계산</button>
+            <button class="tab" onclick="showTab('employees')">직원 관리</button>
+        </div>
+
+        <!-- 급여 계산 탭 -->
+        <div id="tab-calculator" class="tab-content active">
+            <div class="settings-row">
+                <label>1식 단가:</label>
+                <input type="number" id="dailyMealCost" value="8000" min="0" step="1000">
+                <span class="info">원</span>
+                <label style="margin-left: 20px;">일 지급횟수:</label>
+                <select id="mealsPerDay" style="padding:10px; border:2px solid #ffc107; border-radius:8px; font-size:15px;">
+                    <option value="0">미지급</option>
+                    <option value="1" selected>1회</option>
+                    <option value="2">2회</option>
+                    <option value="3">3회</option>
+                </select>
+                <span class="info">(기타수당 계산에 사용)</span>
+                <label style="margin-left: 30px;">최저시급:</label>
+                <input type="number" id="minimumWage" value="10030" min="0" step="10">
+                <span class="info">원</span>
+            </div>
+
+            <div class="section">
+                <div class="section-title">기본 정보 입력</div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>이름</label>
+                        <input type="text" id="name" placeholder="직원 이름">
+                    </div>
+                    <div class="input-group">
+                        <label>계약월급 (원)</label>
+                        <input type="number" id="contractSalary" placeholder="예: 3000000" min="0">
+                        <span style="font-size: 11px; color: #888; margin-top: 3px;">비과세 금액 포함한 총 월급</span>
+                    </div>
+                    <div class="input-group">
+                        <label>출근시간</label>
+                        <input type="time" id="startTime" value="08:00">
+                    </div>
+                    <div class="input-group">
+                        <label>퇴근시간</label>
+                        <input type="time" id="endTime" value="17:00">
+                    </div>
+                    <div class="input-group">
+                        <label>휴게시간</label>
+                        <select id="breakTime">
+                            <option value="0.5">30분</option>
+                            <option value="1" selected>1시간</option>
+                            <option value="1.5">1시간 30분</option>
+                            <option value="2">2시간</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>월 휴무일수</label>
+                        <select id="monthlyOffDays">
+                            <option value="4">4일 (주1회)</option>
+                            <option value="5">5일</option>
+                            <option value="6">6일</option>
+                            <option value="7">7일</option>
+                            <option value="8" selected>8일 (주2회)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">비과세 항목 입력</div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>식대 (원)</label>
+                        <input type="number" id="mealAllowance" value="200000" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>차량유지비 (원)</label>
+                        <input type="number" id="vehicleAllowance" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>육아수당 (원)</label>
+                        <input type="number" id="childcareAllowance" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>연구수당 (원)</label>
+                        <input type="number" id="researchAllowance" value="0" min="0">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-calculate" onclick="calculate()">급여 계산하기</button>
+
+            <div id="resultArea" style="display: none;">
+                <div class="result-section">
+                    <div class="section-title">급여 계산 결과</div>
+                    <div class="result-grid">
+                        <div class="result-item highlight">
+                            <div class="label">기본급 (기본급+주휴수당)</div>
+                            <div class="value" id="resultBaseSalary">0</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">연장수당</div>
+                            <div class="value" id="resultOvertimePay">0</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">휴일수당</div>
+                            <div class="value" id="resultHolidayPay">0</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">휴일연장수당</div>
+                            <div class="value" id="resultHolidayOvertimePay">0</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">기타수당</div>
+                            <div class="value" id="resultMealExtra">0</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">식대</div>
+                            <div class="value" id="resultMeal">0</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">차량유지비</div>
+                            <div class="value" id="resultVehicle">0</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">육아수당</div>
+                            <div class="value" id="resultChildcare">0</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">연구수당</div>
+                            <div class="value" id="resultResearch">0</div>
+                        </div>
+                    </div>
+
+                    <div class="total-section">
+                        <div class="label">총 급여 (계약월급 + 기타수당)</div>
+                        <div class="value" id="resultTotal">0원</div>
+                    </div>
+
+                    <div id="minimumWageCheck" class="minimum-wage-check pass">
+                        최저임금 검증: 통상시급 0원 (최저임금 이상)
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-success" onclick="saveEmployee()">직원 정보 저장</button>
+                        <button class="btn btn-info" onclick="showContractModal()">근로계약서 작성</button>
+                    </div>
+                </div>
+
+                <!-- 도장 이미지 관리 -->
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <label style="font-weight: bold; margin-bottom: 10px; display: block;">사업체 도장 이미지</label>
+                    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                        <div id="stampPreview" style="width: 80px; height: 80px; border: 2px dashed #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: white;">
+                            <span style="color: #999; font-size: 12px; text-align: center;">도장 없음</span>
+                        </div>
+                        <div>
+                            <input type="file" id="stampInput" accept="image/*" style="display: none;" onchange="handleStampUpload(event)">
+                            <button class="btn btn-secondary" style="padding: 8px 15px; font-size: 13px;" onclick="document.getElementById('stampInput').click()">이미지 선택</button>
+                            <button class="btn btn-danger" style="padding: 8px 15px; font-size: 13px; margin-left: 5px;" onclick="removeStamp()">삭제</button>
+                        </div>
+                        <span style="font-size: 12px; color: #666;">권장: 정사각형 PNG 이미지 (투명 배경)</span>
+                    </div>
+                </div>
+
+                <!-- 근로계약서 미리보기 영역 -->
+                <div id="contractPreviewArea" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <!-- 직원 관리 탭 -->
+        <div id="tab-employees" class="tab-content">
+            <div class="section">
+                <div class="section-title">직원 목록</div>
+                <div id="employeeList">
+                    <table class="employee-table">
+                        <thead>
+                            <tr>
+                                <th>이름</th>
+                                <th>입사일</th>
+                                <th>현재 계약월급</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeeTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #999;">저장된 직원이 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="exportEmployeeData()">데이터 내보내기</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">데이터 가져오기</button>
+                    <input type="file" id="importFile" style="display:none" accept=".json" onchange="importEmployeeData(event)">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 급여/근무조건 변경 모달 -->
+    <div id="salaryModal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="modal-close" onclick="closeSalaryModal()">&times;</span>
+            <div class="modal-header">근무조건 변경</div>
+            <input type="hidden" id="modalEmployeeId">
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>변경 적용일</label>
+                <input type="date" id="modalChangeDate">
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>계약월급 (원)</label>
+                <input type="text" id="modalNewSalary" placeholder="변경할 금액">
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div class="input-group" style="flex: 1;">
+                    <label>출근시간</label>
+                    <input type="time" id="modalStartTime" style="padding: 10px;">
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>퇴근시간</label>
+                    <input type="time" id="modalEndTime" style="padding: 10px;">
+                </div>
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>월 휴무일수</label>
+                <select id="modalMonthlyOffDays" style="padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    <option value="4">4일 (주1회)</option>
+                    <option value="5">5일</option>
+                    <option value="6">6일</option>
+                    <option value="7">7일</option>
+                    <option value="8">8일 (주2회)</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="updateEmployeeSalary()">변경 저장</button>
+        </div>
+    </div>
+
+    <!-- 근무조건 이력 관리 모달 -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="modal-close" onclick="closeHistoryModal()">&times;</span>
+            <div class="modal-header">이력 관리</div>
+            <input type="hidden" id="modalHistoryEmployeeId">
+
+            <!-- 입사일 섹션 -->
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #2c3e50;">📅 입사 정보</div>
+                <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label>입사일</label>
+                        <input type="date" id="historyHireDate" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label>입사 시 급여 (원)</label>
+                        <input type="text" id="historyHireSalary" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;" placeholder="입사 시 급여">
+                    </div>
+                    <button class="btn btn-primary" style="padding: 8px 15px; font-size: 13px;" onclick="saveHireDateFromHistory()">저장</button>
+                </div>
+            </div>
+
+            <!-- 근무조건 변경 이력 섹션 -->
+            <div style="font-weight: bold; margin-bottom: 10px; color: #2c3e50;">📋 근무조건 변경 이력</div>
+            <div id="historyListContainer" style="max-height: 350px; overflow-y: auto;"></div>
+            <div class="btn-group" style="margin-top: 15px;">
+                <button class="btn btn-success" onclick="addNewHistory()">+ 이력 추가</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 근로계약서 작성 모달 -->
+    <div id="contractModal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="modal-close" onclick="closeContractModal()">&times;</span>
+            <div class="modal-header">근로계약서 작성</div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>계약 시작일</label>
+                <input type="date" id="contractStartDate">
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>계약 종료일</label>
+                <input type="date" id="contractEndDate">
+                <label style="margin-top:8px; font-size:13px;">
+                    <input type="checkbox" id="noEndDate" onchange="toggleEndDate()"> 정규직 (기간의 정함이 없음)
+                </label>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="generateContract(); closeContractModal();">계약서 생성</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 이력 수정 모달 -->
+    <div id="editHistoryModal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="modal-close" onclick="closeEditHistoryModal()">&times;</span>
+            <div class="modal-header">이력 수정</div>
+            <input type="hidden" id="editHistoryEmployeeId">
+            <input type="hidden" id="editHistoryIndex">
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>적용일</label>
+                <input type="date" id="editHistoryDate">
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>계약월급 (원)</label>
+                <input type="text" id="editHistorySalary" placeholder="급여">
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div class="input-group" style="flex: 1;">
+                    <label>출근시간</label>
+                    <input type="time" id="editHistoryStartTime" style="padding: 10px;">
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>퇴근시간</label>
+                    <input type="time" id="editHistoryEndTime" style="padding: 10px;">
+                </div>
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>월 휴무일수</label>
+                <select id="editHistoryMonthlyOffDays" style="padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    <option value="4">4일 (주1회)</option>
+                    <option value="5">5일</option>
+                    <option value="6">6일</option>
+                    <option value="7">7일</option>
+                    <option value="8">8일 (주2회)</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="saveHistoryEdit()">저장</button>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let currentCalculation = null;
+        let employees = JSON.parse(localStorage.getItem('employees')) || [];
+
+        // 탭 전환
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            if (tabName === 'employees') {
+                renderEmployeeTable();
+            }
+        }
+
+        function timeToHours(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours + minutes / 60;
+        }
+
+        function formatNumber(num) {
+            return Math.round(num).toLocaleString('ko-KR');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')}`;
+        }
+
+        // 급여 이력의 oldSalary를 적용일 기준으로 재계산
+        function recalculateSalaryHistory(empIndex) {
+            if (empIndex < 0 || !employees[empIndex].salaryHistory) return;
+
+            // 적용일 기준 오름차순 정렬
+            employees[empIndex].salaryHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // 각 이력의 oldSalary를 이전 이력의 newSalary로 설정
+            for (let i = 0; i < employees[empIndex].salaryHistory.length; i++) {
+                if (i === 0) {
+                    // 첫 번째 이력 (입사)은 oldSalary = 0
+                    employees[empIndex].salaryHistory[i].oldSalary = 0;
+                } else {
+                    // 이전 이력의 newSalary를 현재의 oldSalary로
+                    employees[empIndex].salaryHistory[i].oldSalary = employees[empIndex].salaryHistory[i - 1].newSalary;
+                }
+            }
+
+            // 현재 급여를 마지막 이력의 newSalary로 업데이트
+            if (employees[empIndex].salaryHistory.length > 0) {
+                const lastHistory = employees[empIndex].salaryHistory[employees[empIndex].salaryHistory.length - 1];
+                employees[empIndex].contractSalary = lastHistory.newSalary;
+                employees[empIndex].data.contractSalary = lastHistory.newSalary;
+            }
+        }
+
+        function calculate() {
+            const name = document.getElementById('name').value;
+            const contractSalary = parseFloat(document.getElementById('contractSalary').value.replace(/,/g, '')) || 0;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const breakTime = parseFloat(document.getElementById('breakTime').value);
+            const monthlyOffDays = parseFloat(document.getElementById('monthlyOffDays').value);
+
+            const mealAllowance = parseFloat(document.getElementById('mealAllowance').value.replace(/,/g, '')) || 0;
+            const vehicleAllowance = parseFloat(document.getElementById('vehicleAllowance').value.replace(/,/g, '')) || 0;
+            const childcareAllowance = parseFloat(document.getElementById('childcareAllowance').value.replace(/,/g, '')) || 0;
+            const researchAllowance = parseFloat(document.getElementById('researchAllowance').value.replace(/,/g, '')) || 0;
+
+            const dailyMealCost = parseFloat(document.getElementById('dailyMealCost').value.replace(/,/g, '')) || 0;
+            const mealsPerDay = parseFloat(document.getElementById('mealsPerDay').value) || 1;
+            const minimumWage = parseFloat(document.getElementById('minimumWage').value.replace(/,/g, '')) || 10030;
+
+            const startHours = timeToHours(startTime);
+            const endHours = timeToHours(endTime);
+            const dailyTotalHours = endHours - startHours - breakTime;
+
+            const dailyOvertimeHours = dailyTotalHours <= 8 ? 0 : dailyTotalHours - 8;
+            const dailyRegularHours = dailyTotalHours - dailyOvertimeHours;
+
+            const weeklyWorkDays = 7 - monthlyOffDays / 4;
+            const weeklyHolidayDays = weeklyWorkDays <= 5 ? 0 : weeklyWorkDays - 5;
+            const weeklyWeekdayDays = weeklyWorkDays - weeklyHolidayDays;
+
+            const weeklyBaseHours = weeklyWeekdayDays * dailyRegularHours;
+            const weeklyOvertimeHours = weeklyWeekdayDays * dailyOvertimeHours;
+            const weeklyHolidayHours = weeklyHolidayDays * dailyRegularHours;
+            const weeklyHolidayOvertimeHours = weeklyHolidayDays * dailyOvertimeHours;
+
+            let weeklyRestHours = 0;
+            if (weeklyBaseHours >= 15) {
+                const totalWeeklyWork = weeklyBaseHours + weeklyOvertimeHours + weeklyHolidayHours + weeklyHolidayOvertimeHours;
+                weeklyRestHours = totalWeeklyWork > 40 ? 8 : totalWeeklyWork / 40 * 8;
+            }
+
+            const monthlyFactor = 4.345;
+
+            const monthlyBaseHours = weeklyBaseHours * 1 * monthlyFactor;
+            const monthlyOvertimeHours = weeklyOvertimeHours * 1.5 * monthlyFactor;
+            const monthlyHolidayHours = weeklyHolidayHours * 1.5 * monthlyFactor;
+            const monthlyHolidayOvertimeHours = weeklyHolidayOvertimeHours * 1.5 * monthlyFactor;
+            const monthlyWeeklyRestHours = weeklyRestHours * 1 * monthlyFactor;
+
+            const salaryWithoutAllowances = contractSalary - mealAllowance - vehicleAllowance - childcareAllowance - researchAllowance;
+            const totalHours = monthlyBaseHours + monthlyOvertimeHours + monthlyHolidayHours + monthlyHolidayOvertimeHours + monthlyWeeklyRestHours;
+            const hourlyRate = totalHours > 0 ? salaryWithoutAllowances / totalHours : 0;
+
+            const monthlyBasePay = hourlyRate * monthlyBaseHours;
+            const monthlyWeeklyRestPay = hourlyRate * monthlyWeeklyRestHours;
+            const monthlyOvertimePay = hourlyRate * monthlyOvertimeHours;
+            const monthlyHolidayPay = hourlyRate * monthlyHolidayHours;
+            const monthlyHolidayOvertimePay = hourlyRate * monthlyHolidayOvertimeHours;
+            const mealExtra = dailyMealCost * mealsPerDay * weeklyWorkDays * monthlyFactor;
+
+            const combinedBaseSalary = monthlyBasePay + monthlyWeeklyRestPay;
+            const totalSalary = contractSalary + mealExtra;
+
+            const regularHours = monthlyBaseHours + monthlyWeeklyRestHours;
+            const regularWage = monthlyBasePay + monthlyWeeklyRestPay + mealAllowance + vehicleAllowance + childcareAllowance + researchAllowance;
+            const hourlyWage = regularHours > 0 ? regularWage / regularHours : 0;
+
+            // 결과 저장
+            currentCalculation = {
+                name,
+                contractSalary,
+                startTime,
+                endTime,
+                breakTime,
+                monthlyOffDays,
+                mealAllowance,
+                vehicleAllowance,
+                childcareAllowance,
+                researchAllowance,
+                dailyMealCost,
+                mealsPerDay,
+                dailyTotalHours,
+                weeklyWorkDays,
+                monthlyBasePay,
+                monthlyWeeklyRestPay,
+                monthlyOvertimePay,
+                monthlyHolidayPay,
+                monthlyHolidayOvertimePay,
+                mealExtra,
+                combinedBaseSalary,
+                totalSalary,
+                hourlyWage,
+                weeklyOvertimeHours,
+                weeklyHolidayHours,
+                weeklyHolidayOvertimeHours
+            };
+
+            // 결과 표시
+            document.getElementById('resultArea').style.display = 'block';
+            document.getElementById('resultBaseSalary').textContent = formatNumber(combinedBaseSalary) + '원';
+            document.getElementById('resultOvertimePay').textContent = formatNumber(monthlyOvertimePay) + '원';
+            document.getElementById('resultHolidayPay').textContent = formatNumber(monthlyHolidayPay) + '원';
+            document.getElementById('resultHolidayOvertimePay').textContent = formatNumber(monthlyHolidayOvertimePay) + '원';
+            document.getElementById('resultMealExtra').textContent = formatNumber(mealExtra) + '원';
+            document.getElementById('resultMeal').textContent = formatNumber(mealAllowance) + '원';
+            document.getElementById('resultVehicle').textContent = formatNumber(vehicleAllowance) + '원';
+            document.getElementById('resultChildcare').textContent = formatNumber(childcareAllowance) + '원';
+            document.getElementById('resultResearch').textContent = formatNumber(researchAllowance) + '원';
+            document.getElementById('resultTotal').textContent = formatNumber(totalSalary) + '원';
+
+            const minWageCheck = document.getElementById('minimumWageCheck');
+            if (hourlyWage >= minimumWage) {
+                minWageCheck.className = 'minimum-wage-check pass';
+                minWageCheck.textContent = `최저임금 검증: 통상시급 ${formatNumber(hourlyWage)}원 (최저임금 ${formatNumber(minimumWage)}원 이상 - 적합)`;
+            } else {
+                minWageCheck.className = 'minimum-wage-check fail';
+                minWageCheck.textContent = `최저임금 검증: 통상시급 ${formatNumber(hourlyWage)}원 (최저임금 ${formatNumber(minimumWage)}원 미만 - 부적합!)`;
+            }
+
+            document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 직원 저장
+        function saveEmployee() {
+            if (!currentCalculation || !currentCalculation.name) {
+                alert('먼저 급여를 계산해주세요.');
+                return;
+            }
+
+            const existingIndex = employees.findIndex(e => e.name === currentCalculation.name);
+            const today = new Date().toISOString().split('T')[0];
+
+            if (existingIndex >= 0) {
+                // 기존 직원 - 근무조건 변경 이력 추가
+                const oldSalary = employees[existingIndex].contractSalary;
+                const oldData = employees[existingIndex].data || {};
+                const hasChanges = oldSalary !== currentCalculation.contractSalary ||
+                    oldData.startTime !== currentCalculation.startTime ||
+                    oldData.endTime !== currentCalculation.endTime ||
+                    oldData.monthlyOffDays !== currentCalculation.monthlyOffDays;
+
+                if (hasChanges) {
+                    employees[existingIndex].salaryHistory.push({
+                        date: today,
+                        oldSalary: oldSalary,
+                        newSalary: currentCalculation.contractSalary,
+                        startTime: currentCalculation.startTime,
+                        endTime: currentCalculation.endTime,
+                        monthlyOffDays: currentCalculation.monthlyOffDays
+                    });
+                }
+                employees[existingIndex].contractSalary = currentCalculation.contractSalary;
+                employees[existingIndex].data = { ...currentCalculation };
+                alert(`${currentCalculation.name}님의 정보가 업데이트되었습니다.`);
+            } else {
+                // 새 직원
+                employees.push({
+                    id: Date.now(),
+                    name: currentCalculation.name,
+                    contractSalary: currentCalculation.contractSalary,
+                    data: { ...currentCalculation },
+                    salaryHistory: [{
+                        date: today,
+                        oldSalary: 0,
+                        newSalary: currentCalculation.contractSalary,
+                        startTime: currentCalculation.startTime,
+                        endTime: currentCalculation.endTime,
+                        monthlyOffDays: currentCalculation.monthlyOffDays
+                    }],
+                    createdAt: today
+                });
+                alert(`${currentCalculation.name}님이 저장되었습니다.`);
+            }
+
+            localStorage.setItem('employees', JSON.stringify(employees));
+        }
+
+        // 직원 테이블 렌더링
+        function renderEmployeeTable() {
+            const tbody = document.getElementById('employeeTableBody');
+
+            if (employees.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">저장된 직원이 없습니다.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = employees.map(emp => {
+                const hireDate = emp.hireDate || emp.createdAt || '-';
+
+                return `<tr>
+                    <td><strong>${emp.name}</strong></td>
+                    <td>${hireDate !== '-' ? hireDate : '<span style="color:#999">미설정</span>'}</td>
+                    <td>${formatNumber(emp.contractSalary)}원</td>
+                    <td>
+                        <button class="btn btn-info" style="padding:5px 10px; font-size:12px;" onclick="loadEmployee(${emp.id})">불러오기</button>
+                        <button class="btn btn-secondary" style="padding:5px 10px; font-size:12px;" onclick="openHistoryModal(${emp.id})">이력관리</button>
+                        <button class="btn btn-danger" style="padding:5px 10px; font-size:12px;" onclick="deleteEmployee(${emp.id})">삭제</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // 이력 관리 모달
+        function openHistoryModal(id) {
+            const emp = employees.find(e => e.id === id);
+            if (!emp) return;
+
+            document.getElementById('modalHistoryEmployeeId').value = id;
+
+            // 입사일 정보 채우기
+            document.getElementById('historyHireDate').value = emp.hireDate || '';
+
+            // 첫 번째 급여 이력에서 입사 시 급여 가져오기
+            const sortedHistory = [...(emp.salaryHistory || [])].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const firstSalary = sortedHistory.length > 0 ? sortedHistory[0].newSalary : emp.contractSalary;
+            document.getElementById('historyHireSalary').value = formatNumber(firstSalary);
+
+            renderHistoryList(emp);
+            document.getElementById('historyModal').classList.add('active');
+        }
+
+        // 입사일 저장 (이력관리 모달에서)
+        function saveHireDateFromHistory() {
+            const id = parseInt(document.getElementById('modalHistoryEmployeeId').value);
+            const hireDate = document.getElementById('historyHireDate').value;
+            const hireSalary = parseFloat(document.getElementById('historyHireSalary').value.replace(/,/g, '')) || 0;
+
+            const empIndex = employees.findIndex(e => e.id === id);
+            if (empIndex < 0) return;
+
+            employees[empIndex].hireDate = hireDate;
+
+            // 입사일 급여 이력 업데이트 (첫 번째 이력)
+            if (employees[empIndex].salaryHistory && employees[empIndex].salaryHistory.length > 0) {
+                employees[empIndex].salaryHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+                employees[empIndex].salaryHistory[0].date = hireDate;
+                employees[empIndex].salaryHistory[0].newSalary = hireSalary;
+            } else {
+                employees[empIndex].salaryHistory = [{
+                    date: hireDate,
+                    oldSalary: 0,
+                    newSalary: hireSalary
+                }];
+            }
+
+            // 적용일 기준으로 oldSalary 재계산
+            recalculateSalaryHistory(empIndex);
+
+            localStorage.setItem('employees', JSON.stringify(employees));
+
+            // 이력 목록 새로고침
+            const emp = employees.find(e => e.id === id);
+            renderHistoryList(emp);
+            renderEmployeeTable();
+
+            alert('입사 정보가 저장되었습니다.');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.remove('active');
+        }
+
+        function renderHistoryList(emp) {
+            const container = document.getElementById('historyListContainer');
+            const sortedHistory = [...(emp.salaryHistory || [])].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (sortedHistory.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#999;">등록된 이력이 없습니다.</p>';
+                return;
+            }
+
+            let html = `<table class="history-manage-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">순서</th>
+                        <th style="width:90px;">적용일</th>
+                        <th style="width:100px;">계약월급</th>
+                        <th style="width:70px;">급여변동</th>
+                        <th style="width:100px;">출퇴근시간</th>
+                        <th style="width:60px;">월휴무</th>
+                        <th style="width:80px;">관리</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            sortedHistory.forEach((h, idx) => {
+                const diff = h.newSalary - h.oldSalary;
+                const badge = diff > 0 ? 'badge-up' : (diff < 0 ? 'badge-down' : '');
+                const sign = diff > 0 ? '+' : '';
+                const isFirst = idx === 0;
+                const startTime = h.startTime || '-';
+                const endTime = h.endTime || '-';
+                const monthlyOffDays = h.monthlyOffDays || '-';
+
+                html += `<tr>
+                    <td>${idx + 1}${isFirst ? '<br><small>(입사)</small>' : ''}</td>
+                    <td>${h.date}</td>
+                    <td style="text-align:right;">${formatNumber(h.newSalary)}원</td>
+                    <td>${diff !== 0 ? `<span class="badge ${badge}">${sign}${formatNumber(diff)}</span>` : '-'}</td>
+                    <td>${startTime !== '-' ? `${startTime}~${endTime}` : '-'}</td>
+                    <td>${monthlyOffDays !== '-' ? `${monthlyOffDays}일` : '-'}</td>
+                    <td>
+                        <button class="btn btn-info" onclick="openEditHistoryModal(${emp.id}, ${idx})">수정</button>
+                        ${!isFirst ? `<button class="btn btn-danger" onclick="deleteHistory(${emp.id}, ${idx})">삭제</button>` : ''}
+                    </td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // 이력 수정 모달
+        function openEditHistoryModal(empId, historyIdx) {
+            const emp = employees.find(e => e.id === empId);
+            if (!emp) return;
+
+            const sortedHistory = [...(emp.salaryHistory || [])].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const history = sortedHistory[historyIdx];
+            if (!history) return;
+
+            document.getElementById('editHistoryEmployeeId').value = empId;
+            document.getElementById('editHistoryIndex').value = historyIdx;
+            document.getElementById('editHistoryDate').value = history.date;
+            document.getElementById('editHistorySalary').value = formatNumber(history.newSalary);
+            document.getElementById('editHistoryStartTime').value = history.startTime || emp.data?.startTime || '08:00';
+            document.getElementById('editHistoryEndTime').value = history.endTime || emp.data?.endTime || '17:00';
+            document.getElementById('editHistoryMonthlyOffDays').value = history.monthlyOffDays || emp.data?.monthlyOffDays || '8';
+
+            document.getElementById('editHistoryModal').classList.add('active');
+        }
+
+        function closeEditHistoryModal() {
+            document.getElementById('editHistoryModal').classList.remove('active');
+        }
+
+        function saveHistoryEdit() {
+            const empId = parseInt(document.getElementById('editHistoryEmployeeId').value);
+            const historyIdx = parseInt(document.getElementById('editHistoryIndex').value);
+            const newDate = document.getElementById('editHistoryDate').value;
+            const newSalary = parseFloat(document.getElementById('editHistorySalary').value.replace(/,/g, '')) || 0;
+            const newStartTime = document.getElementById('editHistoryStartTime').value;
+            const newEndTime = document.getElementById('editHistoryEndTime').value;
+            const newMonthlyOffDays = parseInt(document.getElementById('editHistoryMonthlyOffDays').value);
+
+            const empIndex = employees.findIndex(e => e.id === empId);
+            if (empIndex < 0) return;
+
+            // 날짜순 정렬
+            employees[empIndex].salaryHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // 해당 이력 수정
+            const history = employees[empIndex].salaryHistory[historyIdx];
+            if (history) {
+                history.date = newDate;
+                history.newSalary = newSalary;
+                history.startTime = newStartTime;
+                history.endTime = newEndTime;
+                history.monthlyOffDays = newMonthlyOffDays;
+            }
+
+            // 적용일 기준으로 oldSalary 재계산
+            recalculateSalaryHistory(empIndex);
+
+            // 마지막 이력이면 현재 근무조건도 업데이트
+            const sortedHistory = employees[empIndex].salaryHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+            if (historyIdx === sortedHistory.length - 1) {
+                employees[empIndex].data.startTime = newStartTime;
+                employees[empIndex].data.endTime = newEndTime;
+                employees[empIndex].data.monthlyOffDays = newMonthlyOffDays;
+            }
+
+            localStorage.setItem('employees', JSON.stringify(employees));
+            closeEditHistoryModal();
+
+            // 이력 목록 새로고침
+            const emp = employees.find(e => e.id === empId);
+            renderHistoryList(emp);
+            renderEmployeeTable();
+
+            alert('이력이 수정되었습니다.');
+        }
+
+        // 이력 삭제
+        function deleteHistory(empId, historyIdx) {
+            if (!confirm('이 이력을 삭제하시겠습니까?')) return;
+
+            const empIndex = employees.findIndex(e => e.id === empId);
+            if (empIndex < 0) return;
+
+            // 날짜순 정렬
+            employees[empIndex].salaryHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // 이력 삭제
+            employees[empIndex].salaryHistory.splice(historyIdx, 1);
+
+            // 적용일 기준으로 oldSalary 재계산
+            recalculateSalaryHistory(empIndex);
+
+            localStorage.setItem('employees', JSON.stringify(employees));
+
+            // 이력 목록 새로고침
+            const emp = employees.find(e => e.id === empId);
+            renderHistoryList(emp);
+            renderEmployeeTable();
+
+            alert('이력이 삭제되었습니다.');
+        }
+
+        // 새 이력 추가
+        function addNewHistory() {
+            const empId = parseInt(document.getElementById('modalHistoryEmployeeId').value);
+            openSalaryModal(empId);
+            closeHistoryModal();
+        }
+
+        // 직원 불러오기
+        function loadEmployee(id) {
+            const emp = employees.find(e => e.id === id);
+            if (!emp) return;
+
+            document.getElementById('name').value = emp.data.name;
+            document.getElementById('contractSalary').value = emp.data.contractSalary;
+            document.getElementById('startTime').value = emp.data.startTime;
+            document.getElementById('endTime').value = emp.data.endTime;
+            document.getElementById('breakTime').value = emp.data.breakTime;
+            document.getElementById('monthlyOffDays').value = emp.data.monthlyOffDays;
+            document.getElementById('mealAllowance').value = emp.data.mealAllowance;
+            document.getElementById('vehicleAllowance').value = emp.data.vehicleAllowance;
+            document.getElementById('childcareAllowance').value = emp.data.childcareAllowance;
+            document.getElementById('researchAllowance').value = emp.data.researchAllowance;
+            document.getElementById('dailyMealCost').value = emp.data.dailyMealCost || 8000;
+            document.getElementById('mealsPerDay').value = emp.data.mealsPerDay || 1;
+
+            showTab('calculator');
+
+            // 천자리 구분 기호 적용
+            numericInputs.forEach(id => {
+                const input = document.getElementById(id);
+                if (input && input.value) formatInputNumber(input);
+            });
+
+            calculate();
+        }
+
+        // 직원 삭제
+        function deleteEmployee(id) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+            employees = employees.filter(e => e.id !== id);
+            localStorage.setItem('employees', JSON.stringify(employees));
+            renderEmployeeTable();
+        }
+
+        // 근무조건 변경 모달
+        function openSalaryModal(id) {
+            const emp = employees.find(e => e.id === id);
+            if (!emp) return;
+
+            document.getElementById('modalEmployeeId').value = id;
+            document.getElementById('modalNewSalary').value = formatNumber(emp.contractSalary);
+            document.getElementById('modalChangeDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modalStartTime').value = emp.data?.startTime || '08:00';
+            document.getElementById('modalEndTime').value = emp.data?.endTime || '17:00';
+            document.getElementById('modalMonthlyOffDays').value = emp.data?.monthlyOffDays || '8';
+            document.getElementById('salaryModal').classList.add('active');
+        }
+
+        function closeSalaryModal() {
+            document.getElementById('salaryModal').classList.remove('active');
+        }
+
+        function updateEmployeeSalary() {
+            const id = parseInt(document.getElementById('modalEmployeeId').value);
+            const newSalary = parseFloat(document.getElementById('modalNewSalary').value.replace(/,/g, '')) || 0;
+            const changeDate = document.getElementById('modalChangeDate').value;
+            const newStartTime = document.getElementById('modalStartTime').value;
+            const newEndTime = document.getElementById('modalEndTime').value;
+            const newMonthlyOffDays = parseInt(document.getElementById('modalMonthlyOffDays').value);
+
+            const empIndex = employees.findIndex(e => e.id === id);
+            if (empIndex < 0) return;
+
+            // 새 이력 추가 (oldSalary는 임시값, recalculate에서 재계산됨)
+            employees[empIndex].salaryHistory.push({
+                date: changeDate,
+                oldSalary: 0,
+                newSalary: newSalary,
+                startTime: newStartTime,
+                endTime: newEndTime,
+                monthlyOffDays: newMonthlyOffDays
+            });
+
+            // 적용일 기준으로 oldSalary 재계산
+            recalculateSalaryHistory(empIndex);
+
+            // 현재 근무조건 업데이트
+            employees[empIndex].data.startTime = newStartTime;
+            employees[empIndex].data.endTime = newEndTime;
+            employees[empIndex].data.monthlyOffDays = newMonthlyOffDays;
+
+            localStorage.setItem('employees', JSON.stringify(employees));
+            closeSalaryModal();
+            renderEmployeeTable();
+            alert('근무조건이 변경되었습니다.');
+        }
+
+        // 데이터 내보내기/가져오기
+        function exportEmployeeData() {
+            const dataStr = JSON.stringify(employees, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `직원데이터_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function importEmployeeData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (confirm(`${imported.length}명의 직원 데이터를 가져오시겠습니까? 기존 데이터는 유지됩니다.`)) {
+                        imported.forEach(imp => {
+                            if (!employees.find(e => e.name === imp.name)) {
+                                employees.push(imp);
+                            }
+                        });
+                        localStorage.setItem('employees', JSON.stringify(employees));
+                        renderEmployeeTable();
+                        alert('데이터를 가져왔습니다.');
+                    }
+                } catch (err) {
+                    alert('파일을 읽을 수 없습니다.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // 근로계약서 모달
+        function showContractModal() {
+            if (!currentCalculation) {
+                alert('먼저 급여 계산을 해주세요.');
+                return;
+            }
+
+            // 오늘 날짜 기본값 설정
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('contractStartDate').value = today;
+
+            document.getElementById('contractModal').classList.add('active');
+        }
+
+        function closeContractModal() {
+            document.getElementById('contractModal').classList.remove('active');
+        }
+
+        // 근로계약서 생성
+        function generateContract() {
+            if (!currentCalculation) {
+                alert('먼저 급여 계산을 해주세요.');
+                return;
+            }
+
+            const name = currentCalculation.name || '';
+            const startDate = document.getElementById('contractStartDate').value || '';
+            const endDate = document.getElementById('contractEndDate').value || '';
+
+            const calc = currentCalculation;
+            const contractSalary = calc.contractSalary || 0;
+            const startTime = calc.startTime || '09:00';
+            const endTime = calc.endTime || '18:00';
+            const breakTimeVal = calc.breakTime || 1;
+            const breakTimeStr = breakTimeVal === 1 ? '1시간' : breakTimeVal === 0.5 ? '30분' : breakTimeVal === 1.5 ? '1시간 30분' : '2시간';
+            const dailyHours = calc.dailyTotalHours || 8;
+            const monthlyOffDays = calc.monthlyOffDays || 8;
+
+            // 휴무일수에 따른 구분 표시 (월 8일 휴무 = 주 5일 근무)
+            const workTypeLabel = monthlyOffDays == 8 ? '주 5일 근무' : `월 ${monthlyOffDays}일 휴무`;
+
+            // 시간외근로 시간 계산
+            const overtimeHours = Math.ceil((calc.weeklyOvertimeHours || 0) * 4.345 * 100) / 100;
+            const holidayHours = Math.ceil((calc.weeklyHolidayHours || 0) * 4.345 * 100) / 100;
+            const holidayOvertimeHours = Math.ceil((calc.weeklyHolidayOvertimeHours || 0) * 4.345 * 100) / 100;
+
+            const previewHtml = `
+            <div class="contract-preview" id="contractPrint">
+                <h2>근 로 계 약 서</h2>
+
+                <table class="contract-table">
+                    <colgroup>
+                        <col style="width:12%;">
+                        <col style="width:14%;">
+                        <col style="width:30%;">
+                        <col style="width:14%;">
+                        <col style="width:30%;">
+                    </colgroup>
+                    <tr>
+                        <th rowspan="3">"갑"<br>(사용자)</th>
+                        <th>사업장 명칭</th>
+                        <td>농업회사법인㈜육구이</td>
+                        <th>전화</th>
+                        <td>031-444-8882</td>
+                    </tr>
+                    <tr>
+                        <th>소재지</th>
+                        <td colspan="3">경기도 안양시 만안구 박달로 298, 협신식품 나동 지하1층</td>
+                    </tr>
+                    <tr>
+                        <th>대표</th>
+                        <td>김우형, 김민서</td>
+                        <th>사업자등록번호</th>
+                        <td>495-86-02705</td>
+                    </tr>
+                </table>
+
+                <table class="contract-table" style="margin-top:-1px;">
+                    <colgroup>
+                        <col style="width:12%;">
+                        <col style="width:14%;">
+                        <col style="width:30%;">
+                        <col style="width:14%;">
+                        <col style="width:30%;">
+                    </colgroup>
+                    <tr>
+                        <th rowspan="3">"을"<br>(근로자)</th>
+                        <th>성명</th>
+                        <td>${name}</td>
+                        <th>전화번호</th>
+                        <td style="min-height: 20px;"></td>
+                    </tr>
+                    <tr>
+                        <th>생년월일</th>
+                        <td colspan="3" style="min-height: 20px;"></td>
+                    </tr>
+                    <tr>
+                        <th>주소</th>
+                        <td colspan="3" style="min-height: 20px;"></td>
+                    </tr>
+                </table>
+
+                <p><strong>1. 근로계약기간:</strong> ${formatDate(startDate)} 부터 ${endDate ? formatDate(endDate) + ' 까지' : '<u>기간의 정함이 없음</u>'}</p>
+                <p><strong>2. 근무장소:</strong> 근무장소는 갑의 사업장 및 사업과 관련된 장소로 한다. 다만, 업무의 필요나 부득이한 사정이 있는 경우 근무장소를 변경할 수 있다.</p>
+                <p><strong>3. 업무내용:</strong> 갑 사업장의 이익과 관련된 일체 업무</p>
+
+                <p><strong>4. 근로시간 및 휴게시간</strong></p>
+                <table class="contract-table">
+                    <tr>
+                        <th style="width:90px;">구분</th>
+                        <th>근로시간</th>
+                        <th>휴게시간</th>
+                        <th style="width:70px;">일실근로시간</th>
+                    </tr>
+                    <tr>
+                        <td>${workTypeLabel}</td>
+                        <td>${startTime} ~ ${endTime}</td>
+                        <td>${breakTimeStr}의 자유로운 휴게시간 부여</td>
+                        <td>${dailyHours}시간</td>
+                    </tr>
+                </table>
+                <p class="indent">회사 업무의 필요에 따라 "을"의 근로시간 및 휴게시간을 변경할 수 있다.</p>
+
+                <p><strong>5. 시간외근로(연장근로, 야간근로, 휴일근로)</strong></p>
+                <p class="indent">(1) "을"의 업무특성상 시간외근로가 통상적으로 발생하므로 "갑"은 "을"에게 소정근로시간외에 매월 ${overtimeHours}시간의 연장근로, ${holidayHours}시간의 휴일근로, ${holidayOvertimeHours}시간의 휴일연장근로에 대한 동의를 구하며, "갑"은 "을"에게 시간외근로수당을 연봉산정시 포괄하여 매월 지급하기로 한다.</p>
+                <p class="indent">(2) "갑"의 명시적인 요구나 지시에 의하지 아니한 을의 시간외 근로는 이를 근로한 것으로 보지 아니한다.</p>
+
+                <p><strong>6. 근무일 / 휴일</strong></p>
+                ${monthlyOffDays != 8 ? `<p class="indent">(1) 월 ${monthlyOffDays}회 휴무를 기본으로 한다.</p>` : ''}
+                <p class="indent">${monthlyOffDays != 8 ? '(2)' : '(1)'} 매주 일요일은 주휴일로 하며, 근로자의 날과 주휴일은 유급휴일로 한다.</p>
+                <p class="indent">${monthlyOffDays != 8 ? '(3)' : '(2)'} 위의 유급휴일에 대하여는 상호합의하여 대체할 수 있다. 다만, 휴일대체의 경우에는 최소한 대체일 전일까지 휴일을 특정하여 통보하여야 한다.</p>
+                <p class="indent">${monthlyOffDays != 8 ? '(4)' : '(3)'} 근로일과 휴일은 업무상 필요에 따라 변경하여 운영할 수 있다.</p>
+
+                <p><strong>7. 임금</strong></p>
+                <p class="indent">(1) 임금의 구성항목</p>
+                <p class="indent"><strong>월급은 ${formatNumber(contractSalary)}원</strong>으로 하며 매월 예금통장으로 입금</p>
+
+                <table class="contract-table">
+                    <tr>
+                        <th colspan="2">항목</th>
+                        <th style="width:100px;">월 금액</th>
+                    </tr>
+                    <tr>
+                        <td rowspan="2" style="width:80px;">기본급</td>
+                        <td>기본급</td>
+                        <td style="text-align:right;">${formatNumber(calc.monthlyBasePay || 0)}원</td>
+                    </tr>
+                    <tr>
+                        <td>주휴수당</td>
+                        <td style="text-align:right;">${formatNumber(calc.monthlyWeeklyRestPay || 0)}원</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="3">제수당<br>(가산포함)</td>
+                        <td>연장근로수당</td>
+                        <td style="text-align:right;">${formatNumber(calc.monthlyOvertimePay || 0)}원</td>
+                    </tr>
+                    <tr>
+                        <td>휴일근로수당</td>
+                        <td style="text-align:right;">${formatNumber(calc.monthlyHolidayPay || 0)}원</td>
+                    </tr>
+                    <tr>
+                        <td>휴일연장수당</td>
+                        <td style="text-align:right;">${formatNumber(calc.monthlyHolidayOvertimePay || 0)}원</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">식대</td>
+                        <td style="text-align:right;">${formatNumber(calc.mealAllowance || 0)}원</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">차량유지비</td>
+                        <td style="text-align:right;">${formatNumber(calc.vehicleAllowance || 0)}원</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">육아수당</td>
+                        <td style="text-align:right;">${formatNumber(calc.childcareAllowance || 0)}원</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">연구수당</td>
+                        <td style="text-align:right;">${formatNumber(calc.researchAllowance || 0)}원</td>
+                    </tr>
+                </table>
+
+                <p class="indent">(2) 계산방법: 통상시급 X 근로시간 (연장·야간·휴일 근로에 대하여는 관리 계산편의 등을 위해 월평균 고정근로시간을 추산하여 가산임금을 포함한 포괄임금으로 산정하며, 실근로시간이 이를 초과하는 경우에는 이를 정산 지급한다. 1주당 최대 주휴수당은 관련 법에 의거하여 8시간으로 한다)</p>
+                <p class="indent">(3) 지급방법 및 지급기일: 당월 1일~당월 말일까지를 정산하여 익월 10일 지급, 지급일이 휴일인 경우 전날에 지급, 지급방법: 계좌이체</p>
+                <p class="indent">(4) 급여의 공제</p>
+                <p class="indent2">① 결근·지각·조퇴·외출의 경우 해당 시간분 만큼 공제하고 지급한다.</p>
+                <p class="indent2">② 결근일의 임금과 결근일이 속하는 주의 주휴수당을 급여에서 공제한다.</p>
+                <p class="indent2">③ 주민세, 갑근세, 4대보험료 중 근로자부담분은 공제 후 지급한다.</p>
+                <p class="indent">(5) 중도 입사, 퇴사자의 급여: 중도입사자 퇴사자의 경우 급여는 일할하여 지급한다.</p>
+
+                <p><strong>8. 연차유급휴가</strong></p>
+                <p class="indent">(1) 연차유급휴가 등은 근로기준법에서 정하는 바에 따른다.</p>
+
+                <p><strong>9. 기타</strong></p>
+                <p class="indent">이 계약에서 정함이 없는 사항은 취업규칙 및 근로기준법에 의한다.</p>
+
+                <p><strong>10. 인수인계 및 준수사항</strong></p>
+                <p class="indent">(1) 을은 갑이 정한 지시사항 등을 준수하여야 하며, 이를 위반한 경우 이 계약을 중도에 해지할 수 있다.</p>
+                <p class="indent">(2) 을이 계약기간 중 계약을 해지하고자 하는 경우 30일 전에 사직서를 제출하여야 하며, 갑의 승낙을 얻어야 한다. 또한 후임자를 선임하여 업무 인수인계시까지 성실하게 근무하여야 한다. 만약 이를 위반하는 경우 무단결근으로 처리한다.</p>
+                <p class="indent">(3) 근로자는 업무 수행상 착오, 과오 등이 발생하는 경우 즉시 상사에게 보고하여야 하며, 그의 지시를 받아 필요한 조치를 한다.</p>
+                <p class="indent">(4) 근로자는 계약기간 중 업무와 관련하여 알게 된 사업주의 업무상 비밀, 근로계약의 내용, 기타 기밀을 계약기간 중은 물론이고 계약종료 후에도 제3자에게 누설하거나 본 계약의 이행 이외의 목적으로 이용하여서는 아니되며, 위반하는 경우 민형사책임을 진다.</p>
+                <p class="indent">(5) 근로자는 본인 및 타인의 개인정보 또는 급여 등을 발설하지 않으며, 이를 위반하여 근로자들 간 위해를 조성하면 감봉 및 징계 등 불이익이 있을 수 있다.</p>
+
+                <p><strong>11. 근로계약 해지사유</strong></p>
+                <p class="indent">갑은 다음 각 호의 사유가 있을 때에는 을과의 근로계약을 해지할 수 있다.</p>
+                <p class="indent">(1) 반복적인 지각(월 5회 이상)으로 인해 근로제공에 지장을 초래하는 경우</p>
+                <p class="indent">(2) 정당한 사유 없이 무단으로 조퇴 또는 외출, 결근(월 3일 이상)을 지속적으로 반복하는 경우</p>
+                <p class="indent">(3) 정당한 이유 없이 업무수행을 지체하거나 불성실하다고 인정되는 경우</p>
+                <p class="indent">(4) 근로자들 간 위해를 조성하여 근무분위기를 해치는 등 사업장에 손해를 끼치는 경우</p>
+                <p class="indent">(5) 기타 법령 및 사회상규를 위반하여 사회통념상 계속적으로 근로관계를 유지하기 어려운 경우</p>
+                <p class="indent">(6) 근로자의 정신, 신체상의 사유로 계속 업무수행이 불가능하다고 인정되는 경우</p>
+                <p class="indent">(7) 근로자가 폭행, 파괴, 태업을 선동하는 등 불미한 행위를 하는 경우</p>
+                <p class="indent">(8) 사업주의 동의 없이 타 사업장에 취업하거나, 관리감독 범위를 벗어나 무단이탈한 경우</p>
+
+                <div class="signature-section" style="margin-top:20px; text-align:center;">
+                    <p>${new Date().getFullYear()}년 ${new Date().getMonth()+1}월 ${new Date().getDate()}일</p>
+                </div>
+
+                <div style="margin-top:15px; position: relative;">
+                    <p><strong>(갑) 사업체명:</strong> 농업회사법인㈜육구이</p>
+                    <p><strong>소재지:</strong> 경기도 안양시 만안구 박달로 298, 협신식품 나동 지하1층</p>
+                    <p style="position:relative; overflow:visible;"><strong>대표자:</strong> 김우형, 김민서 <span style="float:right; position:relative; display:inline-block; text-align:center;">${stampImageData ? `<img src="${stampImageData}" style="width:80px; height:80px; position:absolute; top:-30px; left:50%; transform:translateX(calc(-50% - 40px)); z-index:1;">` : ''}<span style="position:relative; z-index:2;">(서명/인)</span></span></p>
+                </div>
+
+                <div style="margin-top:15px;">
+                    <p><strong>(을) 주소:</strong> <span style="display:inline-block; width: 300px; border-bottom: 1px solid #333;"></span></p>
+                    <p><strong>연락처:</strong> <span style="display:inline-block; width: 150px; border-bottom: 1px solid #333;"></span></p>
+                    <p><strong>성명:</strong> ${name} <span style="float:right;">(서명/인)</span></p>
+                </div>
+
+                <div class="print-btn-area" style="margin-top: 30px; text-align: center;">
+                    <button class="btn btn-success" style="padding: 12px 40px; font-size: 16px;" onclick="window.print()">PDF 출력 (인쇄)</button>
+                </div>
+            </div>
+            `;
+
+            document.getElementById('contractPreviewArea').innerHTML = previewHtml;
+        }
+
+        function printContract() {
+            generateContract();
+            window.print();
+        }
+
+        function toggleEndDate() {
+            const checkbox = document.getElementById('noEndDate');
+            const endDateInput = document.getElementById('contractEndDate');
+            if (checkbox.checked) {
+                endDateInput.disabled = true;
+                endDateInput.value = '';
+            } else {
+                endDateInput.disabled = false;
+            }
+        }
+
+        // 숫자 입력 필드 포맷팅
+        function formatInputNumber(input) {
+            let value = input.value.replace(/,/g, '');
+            if (value && !isNaN(value)) {
+                input.value = parseInt(value).toLocaleString('ko-KR');
+            }
+        }
+
+        const numericInputs = ['contractSalary', 'mealAllowance', 'vehicleAllowance', 'childcareAllowance', 'researchAllowance', 'dailyMealCost', 'minimumWage', 'modalNewSalary', 'editHistorySalary', 'historyHireSalary'];
+
+        // 도장 이미지 관리
+        let stampImageData = localStorage.getItem('stampImage') || '';
+
+        function handleStampUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('이미지 파일만 업로드 가능합니다.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                stampImageData = e.target.result;
+                localStorage.setItem('stampImage', stampImageData);
+                updateStampPreview();
+                alert('도장 이미지가 저장되었습니다.');
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function removeStamp() {
+            if (!stampImageData) {
+                alert('등록된 도장이 없습니다.');
+                return;
+            }
+            if (confirm('도장 이미지를 삭제하시겠습니까?')) {
+                stampImageData = '';
+                localStorage.removeItem('stampImage');
+                updateStampPreview();
+                alert('도장 이미지가 삭제되었습니다.');
+            }
+        }
+
+        function updateStampPreview() {
+            const preview = document.getElementById('stampPreview');
+            if (stampImageData) {
+                preview.innerHTML = `<img src="${stampImageData}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+            } else {
+                preview.innerHTML = '<span style="color: #999; font-size: 12px; text-align: center;">도장 없음</span>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            numericInputs.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    if (input.value) formatInputNumber(input);
+                    input.addEventListener('blur', function() { formatInputNumber(this); });
+                    input.addEventListener('focus', function() { this.value = this.value.replace(/,/g, ''); });
+                    input.type = 'text';
+                    input.inputMode = 'numeric';
+                }
+            });
+
+            // 도장 이미지 불러오기
+            updateStampPreview();
+        });
+
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculate();
+        });
+    </script>
+</body>
+</html>

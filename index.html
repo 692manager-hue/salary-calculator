@@ -1090,7 +1090,9 @@
 
                 <div id="tab-employees" class="tab-content">
                     <div class="section">
-                        <div class="section-title">직원 목록</div>
+                        <div class="section-title">
+                            <span id="activeEmployeeTitle">재직 직원</span>
+                        </div>
                         <div id="employeeList">
                             <table class="employee-table">
                                 <thead>
@@ -1108,6 +1110,34 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title" style="border-bottom-color: #c62828;">
+                            <span id="resignedEmployeeTitle">🚪 퇴사 직원</span>
+                            <button id="resignedToggleBtn" class="btn btn-secondary" style="float: right; padding: 5px 12px; font-size: 13px; margin-top: -5px;" onclick="toggleResignedSection()">접기</button>
+                        </div>
+                        <div id="resignedEmployeeList">
+                            <table class="employee-table">
+                                <thead>
+                                    <tr>
+                                        <th>이름</th>
+                                        <th>입사일</th>
+                                        <th>퇴사일</th>
+                                        <th>마지막 계약월급</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resignedEmployeeTableBody">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; color: #999;">퇴사 직원이 없습니다.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="section">
                         <div class="btn-group">
                             <button class="btn btn-secondary" onclick="exportEmployeeData()">데이터 내보내기</button>
                             <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">데이터 가져오기</button>
@@ -1625,7 +1655,7 @@
             <span class="modal-close" onclick="closeHistoryModal()">&times;</span>
             <div class="modal-header">이력 관리</div>
             <input type="hidden" id="modalHistoryEmployeeId">
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                 <div style="font-weight: bold; margin-bottom: 10px; color: #2c3e50;">📅 입사 정보</div>
                 <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
                     <div class="input-group" style="flex: 1; min-width: 150px;">
@@ -1638,6 +1668,18 @@
                     </div>
                     <button class="btn btn-primary" style="padding: 8px 15px; font-size: 13px;" onclick="saveHireDateFromHistory()">저장</button>
                 </div>
+            </div>
+            <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #c62828;">🚪 퇴사 정보</div>
+                <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label>퇴사일</label>
+                        <input type="date" id="historyResignedAt" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    <button class="btn btn-danger" style="padding: 8px 15px; font-size: 13px;" onclick="saveResignedAt()">퇴사 처리</button>
+                    <button class="btn btn-secondary" style="padding: 8px 15px; font-size: 13px;" onclick="cancelResigned()">복직</button>
+                </div>
+                <p id="resignedStatus" style="font-size: 13px; color: #666; margin-top: 10px; margin-bottom: 0;"></p>
             </div>
             <div style="font-weight: bold; margin-bottom: 10px; color: #2c3e50;">📋 근무조건 변경 이력</div>
             <div id="historyListContainer" style="max-height: 350px; overflow-y: auto;"></div>
@@ -2083,12 +2125,64 @@
         }
 
         function renderEmployeeTable() {
+            // 재직자/퇴사자 분리
+            const activeEmps = employees.filter(e => !e.resignedAt);
+            const resignedEmps = employees.filter(e => e.resignedAt);
+
+            // 카운트 표시
+            const activeTitle = document.getElementById('activeEmployeeTitle');
+            const resignedTitle = document.getElementById('resignedEmployeeTitle');
+            if (activeTitle) activeTitle.textContent = `재직 직원 (${activeEmps.length}명)`;
+            if (resignedTitle) resignedTitle.textContent = `🚪 퇴사 직원 (${resignedEmps.length}명)`;
+
+            // 재직자 테이블
             const tbody = document.getElementById('employeeTableBody');
-            if (employees.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">저장된 직원이 없습니다.</td></tr>'; return; }
-            tbody.innerHTML = employees.map(emp => {
-                const hireDate = emp.hireDate || emp.createdAt || '-';
-                return `<tr><td><strong>${emp.name}</strong></td><td>${hireDate !== '-' ? hireDate : '<span style="color:#999">미설정</span>'}</td><td>${formatNumber(emp.contractSalary)}원</td><td><button class="btn btn-info" style="padding:5px 10px; font-size:12px;" onclick="loadEmployee(${emp.id})">불러오기</button><button class="btn btn-secondary" style="padding:5px 10px; font-size:12px;" onclick="openHistoryModal(${emp.id})">이력관리</button><button class="btn btn-danger" style="padding:5px 10px; font-size:12px;" onclick="deleteEmployee(${emp.id})">삭제</button></td></tr>`;
-            }).join('');
+            if (activeEmps.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">재직 직원이 없습니다.</td></tr>';
+            } else {
+                tbody.innerHTML = activeEmps.map(emp => {
+                    const hireDate = emp.hireDate || emp.createdAt || '-';
+                    return `<tr><td><strong>${emp.name}</strong></td><td>${hireDate !== '-' ? hireDate : '<span style="color:#999">미설정</span>'}</td><td>${formatNumber(emp.contractSalary)}원</td><td><button class="btn btn-info" style="padding:5px 10px; font-size:12px;" onclick="loadEmployee(${emp.id})">불러오기</button><button class="btn btn-secondary" style="padding:5px 10px; font-size:12px;" onclick="openHistoryModal(${emp.id})">이력관리</button><button class="btn btn-danger" style="padding:5px 10px; font-size:12px;" onclick="deleteEmployee(${emp.id})">삭제</button></td></tr>`;
+                }).join('');
+            }
+
+            // 퇴사자 테이블
+            const resignedTbody = document.getElementById('resignedEmployeeTableBody');
+            if (!resignedTbody) return;
+            if (resignedEmps.length === 0) {
+                resignedTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">퇴사 직원이 없습니다.</td></tr>';
+            } else {
+                resignedTbody.innerHTML = resignedEmps.map(emp => {
+                    const hireDate = emp.hireDate || emp.createdAt || '-';
+                    return `<tr style="background:#fafafa; color:#666;"><td><strong>${emp.name}</strong></td><td>${hireDate !== '-' ? hireDate : '<span style="color:#999">미설정</span>'}</td><td><strong style="color:#c62828;">${emp.resignedAt}</strong></td><td>${formatNumber(emp.contractSalary)}원</td><td><button class="btn btn-secondary" style="padding:5px 10px; font-size:12px;" onclick="openHistoryModal(${emp.id})">이력관리</button><button class="btn btn-success" style="padding:5px 10px; font-size:12px;" onclick="reinstateEmployee(${emp.id})">복직</button><button class="btn btn-danger" style="padding:5px 10px; font-size:12px;" onclick="deleteEmployee(${emp.id})">삭제</button></td></tr>`;
+                }).join('');
+            }
+        }
+
+        // 직원관리 탭에서 직접 복직 처리 (이력관리 모달 안 거치고)
+        function reinstateEmployee(id) {
+            const empIndex = employees.findIndex(e => e.id === id);
+            if (empIndex < 0) return;
+            if (!confirm(`${employees[empIndex].name}님을 복직 처리하시겠습니까?`)) return;
+            delete employees[empIndex].resignedAt;
+            localStorage.setItem('employees', JSON.stringify(employees));
+            renderEmployeeTable();
+            updateStatsEmployeeOptions();
+            alUpdateEmployeeOptions();
+        }
+
+        // 퇴사 직원 섹션 접기/펼치기
+        function toggleResignedSection() {
+            const list = document.getElementById('resignedEmployeeList');
+            const btn = document.getElementById('resignedToggleBtn');
+            if (!list || !btn) return;
+            if (list.style.display === 'none') {
+                list.style.display = '';
+                btn.textContent = '접기';
+            } else {
+                list.style.display = 'none';
+                btn.textContent = '펼치기';
+            }
         }
 
         function openHistoryModal(id) {
@@ -2096,11 +2190,71 @@
             if (!emp) return;
             document.getElementById('modalHistoryEmployeeId').value = id;
             document.getElementById('historyHireDate').value = emp.hireDate || '';
+            document.getElementById('historyResignedAt').value = emp.resignedAt || '';
             const sortedHistory = [...(emp.salaryHistory || [])].sort((a, b) => new Date(a.date) - new Date(b.date));
             const firstSalary = sortedHistory.length > 0 ? sortedHistory[0].newSalary : emp.contractSalary;
             document.getElementById('historyHireSalary').value = formatNumber(firstSalary);
+            updateResignedStatusInModal(emp);
             renderHistoryList(emp);
             document.getElementById('historyModal').classList.add('active');
+        }
+
+        // 모달에 재직/퇴사 상태 표시
+        function updateResignedStatusInModal(emp) {
+            const statusEl = document.getElementById('resignedStatus');
+            if (!statusEl || !emp) return;
+            if (emp.resignedAt) {
+                statusEl.innerHTML = `📌 현재 상태: <strong style="color:#c62828;">퇴사 (${emp.resignedAt})</strong>`;
+            } else {
+                statusEl.innerHTML = `📌 현재 상태: <strong style="color:#28a745;">재직 중</strong>`;
+            }
+        }
+
+        // 퇴사 처리
+        function saveResignedAt() {
+            const id = parseInt(document.getElementById('modalHistoryEmployeeId').value);
+            const resignedAt = document.getElementById('historyResignedAt').value;
+            if (!resignedAt) {
+                alert('퇴사일을 입력해주세요.');
+                return;
+            }
+            const empIndex = employees.findIndex(e => e.id === id);
+            if (empIndex < 0) return;
+
+            // 입사일과 퇴사일 정합성 체크
+            const hireDate = employees[empIndex].hireDate;
+            if (hireDate && new Date(resignedAt) < new Date(hireDate)) {
+                alert(`퇴사일(${resignedAt})이 입사일(${hireDate})보다 이전일 수 없습니다.`);
+                return;
+            }
+
+            employees[empIndex].resignedAt = resignedAt;
+            localStorage.setItem('employees', JSON.stringify(employees));
+            alert(`${employees[empIndex].name}님이 ${resignedAt}자로 퇴사 처리되었습니다.`);
+            updateResignedStatusInModal(employees[empIndex]);
+            renderEmployeeTable();
+            updateStatsEmployeeOptions();
+            alUpdateEmployeeOptions();
+        }
+
+        // 퇴사 취소 (복직)
+        function cancelResigned() {
+            const id = parseInt(document.getElementById('modalHistoryEmployeeId').value);
+            const empIndex = employees.findIndex(e => e.id === id);
+            if (empIndex < 0) return;
+            if (!employees[empIndex].resignedAt) {
+                alert('퇴사 처리되지 않은 직원입니다.');
+                return;
+            }
+            if (!confirm(`${employees[empIndex].name}님의 퇴사 처리를 취소하시겠습니까? (복직)`)) return;
+            delete employees[empIndex].resignedAt;
+            localStorage.setItem('employees', JSON.stringify(employees));
+            document.getElementById('historyResignedAt').value = '';
+            alert(`${employees[empIndex].name}님이 복직 처리되었습니다.`);
+            updateResignedStatusInModal(employees[empIndex]);
+            renderEmployeeTable();
+            updateStatsEmployeeOptions();
+            alUpdateEmployeeOptions();
         }
 
         function saveHireDateFromHistory() {
@@ -2594,10 +2748,10 @@ ${monthlyOffDays != 8 ? `<p class="indent">(1) 월 ${monthlyOffDays}회 휴무�
             document.getElementById('attendanceModalTitle').textContent = '근태 등록';
             document.getElementById('deleteAttendanceBtn').style.display = 'none';
 
-            // 직원 목록 채우기
+            // 직원 목록 채우기 (재직자만)
             const empSelect = document.getElementById('attendanceEmployee');
             empSelect.innerHTML = '<option value="">직원을 선택하세요</option>';
-            employees.forEach(emp => {
+            employees.filter(emp => !emp.resignedAt).forEach(emp => {
                 empSelect.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
             });
 
@@ -2750,10 +2904,11 @@ ${monthlyOffDays != 8 ? `<p class="indent">(1) 월 ${monthlyOffDays}회 휴무�
         }
 
         function updateStatsEmployeeOptions() {
+            // 근태 통계는 재직자만 (퇴사자는 과거 근태 기록 통계에서 제외)
             const empSelect = document.getElementById('statsEmployee');
             const currentValue = empSelect.value;
             empSelect.innerHTML = '<option value="all">전체 직원</option>';
-            employees.forEach(emp => {
+            employees.filter(emp => !emp.resignedAt).forEach(emp => {
                 empSelect.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
             });
             if (currentValue && empSelect.querySelector(`option[value="${currentValue}"]`)) {
@@ -2844,15 +2999,35 @@ ${monthlyOffDays != 8 ? `<p class="indent">(1) 월 ${monthlyOffDays}회 휴무�
             return parseInt(String(str).replace(/[^\d]/g, ''), 10) || 0;
         }
 
-        // 직원 드롭다운 옵션 갱신
+        // 직원 드롭다운 옵션 갱신 (연차수당 계산기 - 재직자/퇴사자 모두 표시)
         function alUpdateEmployeeOptions() {
             const sel = document.getElementById('alSelectEmployee');
             if (!sel) return;
             const currentValue = sel.value;
             sel.innerHTML = '<option value="">직접 입력</option>';
-            employees.forEach(emp => {
-                sel.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
-            });
+
+            // 재직자 그룹
+            const activeEmps = employees.filter(e => !e.resignedAt);
+            if (activeEmps.length > 0) {
+                let grp = '<optgroup label="재직 직원">';
+                activeEmps.forEach(emp => {
+                    grp += `<option value="${emp.id}">${emp.name}</option>`;
+                });
+                grp += '</optgroup>';
+                sel.innerHTML += grp;
+            }
+
+            // 퇴사자 그룹 (정산용)
+            const resignedEmps = employees.filter(e => e.resignedAt);
+            if (resignedEmps.length > 0) {
+                let grp = '<optgroup label="퇴사 직원 (정산용)">';
+                resignedEmps.forEach(emp => {
+                    grp += `<option value="${emp.id}">${emp.name} (퇴사: ${emp.resignedAt})</option>`;
+                });
+                grp += '</optgroup>';
+                sel.innerHTML += grp;
+            }
+
             if (currentValue && sel.querySelector(`option[value="${currentValue}"]`)) {
                 sel.value = currentValue;
             }
@@ -2876,6 +3051,12 @@ ${monthlyOffDays != 8 ? `<p class="indent">(1) 월 ${monthlyOffDays}회 휴무�
             }
             if (hireDate) {
                 document.getElementById('alHireDate').value = hireDate;
+            }
+
+            // 퇴사자: 정산일을 퇴사일로 자동 설정 (퇴직 시 미사용 연차수당 정산)
+            if (emp.resignedAt) {
+                document.getElementById('alSettlementDate').value = emp.resignedAt;
+                console.log(`[연차수당] 퇴사자 선택: 정산일을 퇴사일(${emp.resignedAt})로 자동 설정`);
             }
 
             // 통상시급/통상임금 자동 계산 및 양쪽 모드 모두 자동 입력
